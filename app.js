@@ -7,7 +7,6 @@ const path = require('path');
 const express = require('express');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
 const session = require('express-session');
 const moment = require('moment');
 const _ = require('lodash');
@@ -56,6 +55,7 @@ const product = require('./routes/product');
 const customer = require('./routes/customer');
 const order = require('./routes/order');
 const user = require('./routes/user');
+const transactions = require('./routes/transactions');
 const reviews = require('./routes/reviews');
 
 const app = express();
@@ -263,6 +263,12 @@ handlebars = handlebars.create({
             }
             return '';
         },
+        toUpper: (value) => {
+            if(value){
+                return value.toUpperCase();
+            }
+            return value;
+        },
         upperFirst: (value) => {
             if(value){
                 return value.replace(/^\w/, (chr) => {
@@ -309,6 +315,12 @@ handlebars = handlebars.create({
         timeAgo: (date) => {
             return moment(date).fromNow();
         },
+        imagePath: (value) => {
+            if(value && value.substring(0, 4) === 'http'){
+                return value;
+            }
+            return `${config.baseUrl}${value}`;
+        },
         feather: (icon) => {
             // eslint-disable-next-line keyword-spacing
             return `<svg
@@ -349,7 +361,7 @@ app.enable('trust proxy');
 app.use(helmet());
 app.set('port', process.env.PORT || 1111);
 app.use(logger('dev'));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(config.secretCookie));
 app.use(session({
     resave: true,
@@ -363,7 +375,7 @@ app.use(session({
     store: store
 }));
 
-app.use(bodyParser.json({
+app.use(express.json({
     // Only on Stripe URL's which need the rawBody
     verify: (req, res, buf) => {
         if(req.originalUrl === '/stripe/subscription_update'){
@@ -399,6 +411,7 @@ app.use('/', product);
 app.use('/', order);
 app.use('/', user);
 app.use('/', admin);
+app.use('/', transactions);
 app.use('/', reviews);
 
 // Payment route(s)

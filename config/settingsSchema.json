@@ -65,7 +65,7 @@
         },
         "currencyISO": {
             "type": "string",
-            "enum": ["USD", "EUR", "GBP"],
+            "enum": ["USD", "EUR", "GBP", "RON"],
             "default": "USD"
         },
         "paymentGateway": {
@@ -103,6 +103,10 @@
                     {
                         "type": "string",
                         "enum": [ "zip"]
+                    },
+                    {
+                        "type": "string",
+                        "enum": [ "verifone"]
                     }
                 ]
             }

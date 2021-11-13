@@ -118,11 +118,15 @@ $(document).ready(function (){
         }
     });
 
-    $(document).on('click', '#orderStatusUpdate', function(e){
+    $(document).on('click', '#orderUpdate', function(e){
         $.ajax({
             method: 'POST',
-            url: '/admin/order/statusupdate',
-            data: { order_id: $('#order_id').val(), status: $('#orderStatus').val() }
+            url: '/admin/order/updateorder',
+            data: {
+                order_id: $('#order_id').val(),
+                status: $('#orderStatus').val(),
+                trackingNumber: $('#trackingNumber').val()
+            }
         })
 		.done(function(msg){
             showNotification(msg.message, 'success', true);
@@ -384,6 +388,15 @@ $(document).ready(function (){
     $(document).on('click', '#btn_customer_filter', function(e){
         if($('#customer_filter').val() !== ''){
             window.location.href = '/admin/customers/filter/' + $('#customer_filter').val();
+        }else{
+            showNotification('Please enter a keyword to filter', 'danger');
+        }
+    });
+
+    // applies an transaction filter
+    $(document).on('click', '#btn_transaction_filter', function(e){
+        if($('#transaction_filter').val() !== ''){
+            window.location.href = '/admin/transactions/filter/' + $('#transaction_filter').val();
         }else{
             showNotification('Please enter a keyword to filter', 'danger');
         }
@@ -773,6 +786,23 @@ $(document).ready(function (){
             }
         });
     }
+
+    $(document).on('click', '#addImageUrl', function(e){
+        $.ajax({
+            type: 'POST',
+            url: '/admin/file/url',
+            data: {
+                productId: $('#productId').val(),
+                imageUrl: $('#productImageUrl').val()
+            }
+        })
+        .done(function(msg){
+            showNotification(msg.message, 'success', true);
+        })
+        .fail(function(msg){
+            showNotification(msg.responseJSON.message, 'danger');
+        });
+    });
 
     $(document).on('click', '#uploadButton', function(e){
         e.preventDefault();

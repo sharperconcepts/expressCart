@@ -109,7 +109,8 @@ router.post('/admin/product/insert', restrict, checkAccess, async (req, res) => 
         productComment: checkboxBool(req.body.productComment),
         productAddedDate: new Date(),
         productStock: safeParseInt(req.body.productStock) || null,
-        productStockDisable: convertBool(req.body.productStockDisable)
+        productStockDisable: convertBool(req.body.productStockDisable),
+        productSubscription: cleanHtml(req.body.productSubscription)
     };
 
     // Validate the body again schema
@@ -334,7 +335,8 @@ router.post('/admin/product/update', restrict, checkAccess, async (req, res) => 
         productTags: req.body.productTags,
         productComment: checkboxBool(req.body.productComment),
         productStock: safeParseInt(req.body.productStock) || null,
-        productStockDisable: convertBool(req.body.productStockDisable)
+        productStockDisable: convertBool(req.body.productStockDisable),
+        productSubscription: cleanHtml(req.body.productSubscription)
     };
 
     // Validate the body again schema
@@ -431,18 +433,19 @@ router.post('/admin/product/deleteimage', restrict, checkAccess, async (req, res
         res.status(400).json({ message: 'Product not found' });
         return;
     }
+    // Check for main image being deleted
     if(req.body.productImage === product.productImage){
         // set the productImage to null
         await db.products.updateOne({ _id: getId(req.body.product_id) }, { $set: { productImage: null } }, { multi: false });
+    }
 
-        // remove the image from disk
-        fs.unlink(path.join('public', req.body.productImage), (err) => {
-            if(err){
-                res.status(400).json({ message: 'Image not removed, please try again.' });
-            }else{
-                res.status(200).json({ message: 'Image successfully deleted' });
-            }
-        });
+    // Check if image is a URL
+    if(req.body.productImage.substring(0, 4) === 'http'){
+        // Remove image URL from list
+        const imageList = product.productImages.filter((item) => item !== req.body.productImage);
+        // Update image list to DB
+        await db.products.updateOne({ _id: getId(req.body.product_id) }, { $set: { productImages: imageList } }, { multi: false });
+        res.status(200).json({ message: 'Image successfully deleted' });
     }else{
         // remove the image from disk
         fs.unlink(path.join('public', req.body.productImage), (err) => {
